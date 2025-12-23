@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const config = {
-    host: process.env.ip || '37.27.17.12',
+    host: process.env.ip || '104.251.211.27',
     port: process.env.port || 5001,
     imei: process.env.imei || '867111061137921',
     startLat: process.env.startLat || null,
