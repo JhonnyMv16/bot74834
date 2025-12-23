@@ -19,8 +19,8 @@ Emulador de GPS para o protocolo GPS103, desenvolvido em Node.js.
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/riccefarias/node-gps103-emulator.git
-cd node-gps103-emulator
+git clone https://github.com/JhonnyMv16/bot74834.git
+cd bot74834
 ```
 
 2. Instale as dependências:
