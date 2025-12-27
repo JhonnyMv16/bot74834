@@ -13,7 +13,6 @@ async function isOnLand(lat, lng) {
     try {
         const response = await axios.get(url, {
             headers: {
-                // OBRIGATÓRIO segundo política do OpenStreetMap
                 'User-Agent': 'gps103-emulator-sacode/1.0 (admin@seudominio.com)'
             },
             timeout: 5000
@@ -24,12 +23,12 @@ async function isOnLand(lat, lng) {
         console.warn(
             'Aviso: falha ao verificar se coordenada está em terra. Ignorando validação.'
         );
-        return true; // fallback para não quebrar
+        return true; // fallback
     }
 }
 
 function decodePolyline(encoded) {
-    return polyline.decode(encoded).map(([lat, lon]) => ({ lat, lon }));
+    return polyline.decode(encoded).map(([lat, lon]) => ({ lat, lng: lon }));
 }
 
 async function getRoute(start, end) {
@@ -37,8 +36,8 @@ async function getRoute(start, end) {
         const url = `${config.valhallaUrl}?json=${encodeURIComponent(
             JSON.stringify({
                 locations: [
-                    { lat: start[0], lon: start[1] },
-                    { lat: end[0], lon: end[1] }
+                    { lat: start.lat, lon: start.lng },
+                    { lat: end.lat, lon: end.lng }
                 ],
                 costing: 'auto',
                 directions_options: { units: 'kilometers' }
@@ -65,23 +64,33 @@ async function generateValidRoute() {
         start = getRandomCoordinate(bbox);
         destination = getRandomCoordinate(bbox);
 
+        // validação básica
+        if (
+            typeof start.lat !== 'number' ||
+            typeof start.lng !== 'number' ||
+            typeof destination.lat !== 'number' ||
+            typeof destination.lng !== 'number'
+        ) {
+            continue;
+        }
+
         // Validação de terra (com fallback)
-        const startOnLand = await isOnLand(start[0], start[1]);
-        const destOnLand = await isOnLand(destination[0], destination[1]);
+        const startOnLand = await isOnLand(start.lat, start.lng);
+        const destOnLand = await isOnLand(destination.lat, destination.lng);
 
         if (!startOnLand || !destOnLand) continue;
 
-        distance = haversineDistance(
-            start[0],
-            start[1],
-            destination[0],
-            destination[1]
-        );
-    } while (distance < config.minDistance || distance > config.maxDistance);
+        distance = haversineDistance(start, destination);
+
+    } while (
+        !distance ||
+        distance < config.minDistance ||
+        distance > config.maxDistance
+    );
 
     return {
-        start: { lat: start[0], lng: start[1] },
-        destination: { lat: destination[0], lng: destination[1] },
+        start,
+        destination,
         distance
     };
 }
